@@ -2,7 +2,7 @@
 
 #include "BaseLensPlugins.h"
 #include "Shader.h"
-
+#include "FrameBufferObject.h"
 
 namespace OpenGLLens
 {
@@ -24,13 +24,14 @@ namespace OpenGLLens
 		unsigned int cubeVAO, cubeVBO;
 		unsigned int planeVAO, planeVBO;
 		unsigned int quadVAO, quadVBO;
-		unsigned int framebuffer;
-		unsigned int textureColorbuffer;
-		unsigned int rbo;
+		//unsigned int framebuffer;
+		//unsigned int textureColorbuffer;
+		//unsigned int rbo;
 		unsigned int cubeTexture;
 		unsigned int floorTexture;
 
 		std::shared_ptr<Shader> cubeShader;
 		std::shared_ptr<Shader> screenShader;
+		std::shared_ptr<FrameBufferObject> m_frameBufferObject;
 	};
 }

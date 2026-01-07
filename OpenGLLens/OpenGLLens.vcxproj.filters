@@ -48,6 +48,9 @@
     <ClCompile Include="plugins\FrameBuffersTest.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="plugins\FrameBufferObject.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="imgui\backends\imgui_impl_glfw.h">
@@ -96,6 +99,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="plugins\Shader.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="plugins\FrameBufferObject.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

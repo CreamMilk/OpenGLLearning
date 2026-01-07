@@ -151,7 +151,7 @@ namespace OpenGLLens
         glGenBuffers(1, &quadVBO);
         glBindVertexArray(quadVAO);
         glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(cube::quadVertices), cube::planeVertices.data(), GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(cube::quadVertices), cube::quadVertices.data(), GL_STATIC_DRAW);
         glEnableVertexAttribArray(0);
         glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
         glEnableVertexAttribArray(1);
@@ -170,33 +170,10 @@ namespace OpenGLLens
         screenShader->use();
         screenShader->setInt("screenTexture", 0);
 
-        // framebuffer configuration
-        // -------------------------
-        glGenFramebuffers(1, &framebuffer);
-        glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-
-		// create a color attachment texture
-		//TODO: 这段代码后面要重点翻译理解
-
-        glGenTextures(1, &textureColorbuffer);
-        glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
-        // 后面这里要增加到drawContext中
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1280, 800, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorbuffer, 0);
-		// create a renderbuffer object for depth and stencil attachment (we won't be sampling these)
-
-		glGenRenderbuffers(1, &rbo);
-		glBindRenderbuffer(GL_RENDERBUFFER, rbo);
-        // use a single renderbuffer object for both a depth AND stencil buffer.
-		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, 1280, 800); 
-        // now actually attach it
-		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo); 
-		// now that we actually created the framebuffer and added all attachments we want to check if it is actually complete now
-        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-            std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl; 
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        m_frameBufferObject = std::make_shared<FrameBufferObject>();
+        m_frameBufferObject->init(1280, 800);
+        m_frameBufferObject->initColor(GL_RGB, GL_RGB, GL_UNSIGNED_BYTE, GL_LINEAR, GL_TEXTURE_2D);
+		m_frameBufferObject->initDepth();
     }
 
 	FrameBuffersTest::~FrameBuffersTest() 
@@ -211,7 +188,11 @@ namespace OpenGLLens
 
 	void FrameBuffersTest::onRender() 
 	{
-		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+        if (!m_frameBufferObject->start())
+        {
+            return;
+        }
+
         glEnable(GL_DEPTH_TEST);
 
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
@@ -219,7 +200,7 @@ namespace OpenGLLens
 
         cubeShader->use();
 		glm::mat4 model = glm::mat4(1.0f);
-		glm::vec3 pos = glm::vec3(0.0f, 0.0f, 0.0f);
+		glm::vec3 pos = glm::vec3(0.0f, 0.0f, 8.0f);
 		glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
 		glm::vec3 front = glm::vec3(0.0f, 0.0f, -1.0f);
         glm::mat4 view = glm::lookAt(pos, pos + front, up);
@@ -245,7 +226,8 @@ namespace OpenGLLens
         glDrawArrays(GL_TRIANGLES, 0, 6);
         glBindVertexArray(0);
 
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        m_frameBufferObject->stop();
+
         glDisable(GL_DEPTH_TEST);
 
         glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
@@ -253,7 +235,7 @@ namespace OpenGLLens
 
         screenShader->use();
         glBindVertexArray(quadVAO);
-        glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
+        glBindTexture(GL_TEXTURE_2D, m_frameBufferObject->getColorTexture());
         glDrawArrays(GL_TRIANGLES, 0, 6);
 	}	
 
