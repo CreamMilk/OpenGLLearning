@@ -37,8 +37,8 @@ namespace OpenGLLens
 
 	void ClearColorTest::onImGuiRender()
 	{
-		ImGui::Begin("ClearColorWindow");
+		//ImGui::Begin("ClearColorWindow");
 		ImGui::ColorEdit4("clear color", (float*)&m_ClearColor);
-		ImGui::End();
+		//ImGui::End();
 	}
 }

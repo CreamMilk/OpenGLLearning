@@ -7,8 +7,8 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
-#include "plugins/ClearColorTest.h"
-#include "plugins/FrameBuffersTest.h"
+#include "plugins/TestMenu.h"
+#include "plugins/TestMenuConfig.h"
 
 static void glfw_error_callback(int error, const char* description)
 {
@@ -68,10 +68,10 @@ int main(int, char**)
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init(glsl_version);
 
-    //ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
-
-    //OpenGLLens::ClearColorTest test;
-    OpenGLLens::FrameBuffersTest test;
+	OpenGLLens::BaseLensPlugins* currentTest = nullptr;
+	OpenGLLens::TestMenu* testMenu = new OpenGLLens::TestMenu(currentTest);
+	OpenGLLens::TestMenuConfig::RegisterTests(*testMenu);
+    currentTest = testMenu;
 
     while (!glfwWindowShouldClose(window))
     {
@@ -86,8 +86,22 @@ int main(int, char**)
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        static float f = 0.0f;
-        static int counter = 0;
+        if (currentTest)
+        {
+            currentTest->onUpdate(0.0f);
+			currentTest->onRender();
+
+			ImGui::Begin("Test Menu");
+            if (currentTest != testMenu && ImGui::Button("<- Back to Test Menu"))
+            {
+                delete currentTest;
+				currentTest = testMenu; 
+            }
+			currentTest->onImGuiRender();
+			ImGui::End();
+        }
+        //static float f = 0.0f;
+        //static int counter = 0;
 
         //ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
 
@@ -103,11 +117,11 @@ int main(int, char**)
         //ImGui::SameLine();
         //ImGui::Text("counter = %d", counter);
 
-        //ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
+        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
         //ImGui::End();
 
-        test.onRender();
-        test.onImGuiRender();
+        //test.onRender();
+        //test.onImGuiRender();
 
         ImGui::Render();
         int dispay_w, display_h;

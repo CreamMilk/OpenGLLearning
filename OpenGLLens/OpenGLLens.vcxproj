@@ -137,6 +137,8 @@
     <ClCompile Include="imgui\imgui_tables.cpp" />
     <ClCompile Include="imgui\imgui_widgets.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="plugins\TestMenu.cpp" />
+    <ClCompile Include="plugins\TestMenuConfig.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="plugins\FrameBufferObject.h" />
@@ -156,6 +158,8 @@
     <ClInclude Include="plugins\BaseLensPlugins.h" />
     <ClInclude Include="plugins\Shader.h" />
     <ClInclude Include="stb_image\stb_image.h" />
+    <ClInclude Include="plugins\TestMenu.h" />
+    <ClInclude Include="plugins\TestMenuConfig.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\framebuffers.fs" />
