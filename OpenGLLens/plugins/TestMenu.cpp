@@ -10,7 +10,7 @@ namespace OpenGLLens
 
 	}
 
-	void TestMenu::onRender()
+	void TestMenu::onRender(const DrawContext* drawContext)
 	{
 		glClearColor(0.2f, 0.3f, 0.8f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
@@ -22,7 +22,7 @@ namespace OpenGLLens
 		{
 			if (ImGui::Button(test.first.c_str()))
 			{
-				std::cout << "Switching to test: " << test.first << std::endl;
+				//std::cout << "Switching to test: " << test.first << std::endl;
 				m_currentTestPointer = test.second();
 			}
 		}

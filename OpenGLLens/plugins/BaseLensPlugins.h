@@ -1,5 +1,7 @@
 #pragma once
 
+#include "DrawContext.h"
+
 namespace OpenGLLens
 {
 	class BaseLensPlugins
@@ -9,7 +11,7 @@ namespace OpenGLLens
 		virtual ~BaseLensPlugins() {}
 
 		virtual void onUpdate(float delaTime) {}
-		virtual void onRender() {}
+		virtual void onRender(const DrawContext* drawContext) {}
 		virtual void onImGuiRender() {}
 	};
 }

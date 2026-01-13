@@ -24,9 +24,9 @@ namespace OpenGLLens
 
 	}
 
-	void ClearColorTest::onRender()
+	void ClearColorTest::onRender(const DrawContext* drawContext)
 	{ 
-
+		IM_UNUSED(drawContext);
 		glClearColor(m_ClearColor[0]
 			, m_ClearColor[1]
 			, m_ClearColor[2]

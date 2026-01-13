@@ -1,5 +1,6 @@
 #include <glad/glad.h>
 #include "FrameBuffersTest.h"
+
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
@@ -8,7 +9,8 @@
 
 #include <iostream>
 #include <array>
-//#include <filesystem>
+
+#include "VertexBufferLayout.h"
 
 namespace OpenGLLens
 {
@@ -125,37 +127,33 @@ namespace OpenGLLens
         screenShader = std::make_shared<Shader>("shaders/framebuffers_screen.vs", "shaders/framebuffers_screen.fs");
 
         // cube VAO
-        glGenVertexArrays(1, &cubeVAO);
-        glGenBuffers(1, &cubeVBO);
-        glBindVertexArray(cubeVAO);
-        glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(cube::cubeVertices), cube::cubeVertices.data(), GL_STATIC_DRAW);
-        glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
-        glEnableVertexAttribArray(1);
-        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+		m_cubeVAO = std::make_shared<VertexArray>();
+        m_cubeVAO->bind();
+		m_cubeVBO = std::make_shared<VertexBuffer>((void *)cube::cubeVertices.data(), sizeof(cube::cubeVertices));
+		VertexBufferLayout cubeLayout;
+		cubeLayout.push<float>(3);
+		cubeLayout.push<float>(2);
+		m_cubeVAO->addBuffer(*m_cubeVBO, cubeLayout);
+
 
         // plane VAO
-        glGenVertexArrays(1, &planeVAO);
-        glGenBuffers(1, &planeVBO);
-        glBindVertexArray(planeVAO);
-        glBindBuffer(GL_ARRAY_BUFFER, planeVBO);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(cube::planeVertices), cube::planeVertices.data(), GL_STATIC_DRAW);
-        glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
-        glEnableVertexAttribArray(1);
-        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+		m_planeVAO = std::make_shared<VertexArray>();
+		m_planeVAO->bind();
+		m_planeVBO = std::make_shared<VertexBuffer>((void*)cube::planeVertices.data(), sizeof(cube::planeVertices));
+		VertexBufferLayout planeLayout;
+		planeLayout.push<float>(3);
+		planeLayout.push<float>(2);
+		m_planeVAO->addBuffer(*m_planeVBO, planeLayout);
 
         // screen quad VAO
-        glGenVertexArrays(1, &quadVAO);
-        glGenBuffers(1, &quadVBO);
-        glBindVertexArray(quadVAO);
-        glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(cube::quadVertices), cube::quadVertices.data(), GL_STATIC_DRAW);
-        glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
-        glEnableVertexAttribArray(1);
-        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+        m_quadVAO = std::make_shared<VertexArray>();
+		m_quadVAO->bind();
+		m_quadVBO = std::make_shared<VertexBuffer>((void*)cube::quadVertices.data(), sizeof(cube::quadVertices));
+		VertexBufferLayout quadLayout;
+		quadLayout.push<float>(2);
+		quadLayout.push<float>(2);
+		m_quadVAO->addBuffer(*m_quadVBO, quadLayout);
+
 
 
         cubeTexture = loadTexture("D:/code/OpenGLLens/OpenGLLens/resources/images/container.jpg");
@@ -171,9 +169,9 @@ namespace OpenGLLens
         screenShader->setInt("screenTexture", 0);
 
         m_frameBufferObject = std::make_shared<FrameBufferObject>();
-        m_frameBufferObject->init(1280, 800);
-        m_frameBufferObject->initColor(GL_RGB, GL_RGB, GL_UNSIGNED_BYTE, GL_LINEAR, GL_TEXTURE_2D);
-		m_frameBufferObject->initDepth();
+  //      m_frameBufferObject->init(1280, 800);
+  //      m_frameBufferObject->initColor(GL_RGB, GL_RGB, GL_UNSIGNED_BYTE, GL_LINEAR, GL_TEXTURE_2D);
+		//m_frameBufferObject->initDepth();
     }
 
 	FrameBuffersTest::~FrameBuffersTest() 
@@ -186,8 +184,21 @@ namespace OpenGLLens
 
 	}
 
-	void FrameBuffersTest::onRender() 
+	void FrameBuffersTest::onRender(const DrawContext* drawContext)
 	{
+        if(m_initialized == false ||
+            m_screenWidth != (unsigned int)drawContext->glWidth ||
+            m_screenHeight != (unsigned int)drawContext->glHeight)
+        {
+            m_screenWidth = drawContext->glWidth;
+            m_screenHeight = drawContext->glHeight;
+            m_frameBufferObject->init(m_screenWidth, m_screenHeight);
+            m_frameBufferObject->initColor(GL_RGB, GL_RGB, GL_UNSIGNED_BYTE, GL_LINEAR, GL_TEXTURE_2D);
+            m_frameBufferObject->initDepth();
+            m_initialized = true;
+			std::cout << "FrameBuffersTest::onRender resize framebuffer to " << m_screenWidth << "x" << m_screenHeight << std::endl;
+		}
+
         if (!m_frameBufferObject->start())
         {
             return;
@@ -200,15 +211,17 @@ namespace OpenGLLens
 
         cubeShader->use();
 		glm::mat4 model = glm::mat4(1.0f);
-		glm::vec3 pos = glm::vec3(0.0f, 0.0f, 8.0f);
+		/*glm::vec3 pos = glm::vec3(0.0f, 0.0f, 8.0f);
 		glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
-		glm::vec3 front = glm::vec3(0.0f, 0.0f, -1.0f);
-        glm::mat4 view = glm::lookAt(pos, pos + front, up);
-        glm::mat4 projection = glm::perspective(glm::radians(45.0f), 1280.0f / 800.0f, 0.1f, 100.0f);
+		glm::vec3 front = glm::vec3(0.0f, 0.0f, -1.0f);*/
+        glm::mat4 view = drawContext->viewMatrix;//glm::lookAt(pos, pos + front, up);
+		float aspectRatio = drawContext->glWidth / (float)drawContext->glHeight;
+        glm::mat4 projection = glm::perspective(glm::radians(45.0f), aspectRatio, 0.1f, 100.0f);
 		cubeShader->setMat4("view", view);
 		cubeShader->setMat4("projection", projection);
 
-        glBindVertexArray(cubeVAO);
+        //glBindVertexArray(cubeVAO);
+		m_cubeVAO->bind();
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, cubeTexture);
         model = glm::translate(model, glm::vec3(-1.0f, 0.0f, -1.0f));
@@ -220,7 +233,8 @@ namespace OpenGLLens
         cubeShader->setMat4("model", model);
         glDrawArrays(GL_TRIANGLES, 0, 36);
 
-        glBindVertexArray(planeVAO);
+        //glBindVertexArray(planeVAO);
+		m_planeVAO->bind();
         glBindTexture(GL_TEXTURE_2D, floorTexture);
         cubeShader->setMat4("model", glm::mat4(1.0f));
         glDrawArrays(GL_TRIANGLES, 0, 6);
@@ -234,7 +248,8 @@ namespace OpenGLLens
         glClear(GL_COLOR_BUFFER_BIT);
 
         screenShader->use();
-        glBindVertexArray(quadVAO);
+       // glBindVertexArray(quadVAO);
+		m_quadVAO->bind();
         glBindTexture(GL_TEXTURE_2D, m_frameBufferObject->getColorTexture());
         glDrawArrays(GL_TRIANGLES, 0, 6);
 	}	

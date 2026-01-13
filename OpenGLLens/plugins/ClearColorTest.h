@@ -12,7 +12,7 @@ namespace OpenGLLens
 		~ClearColorTest();
 
 		void onUpdate(float delaTime) override;
-		void onRender() override;
+		void onRender(const DrawContext* drawContext) override;
 		void onImGuiRender() override;
 
 	private:
